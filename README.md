@@ -1,6 +1,8 @@
 # GreenLuan
 青鸾信, Green Luan's Dispatch, Qingluan Letter, Celestial Messenger.
+青鸟殷勤为探看
 青鸾衔讯穿云过，万里流光一瞬通。
+鸟随鸾凤飞能远，人伴贤良品自高。
 
 ## 信使
 废寝忘餐思想徧。赖有青鸾，不必凭鱼雁。
@@ -30,19 +32,19 @@ GreenLuan青鸾信Android手机控制（服务）端App项目程序目录为：A
 
 
 # 域名
-greenluan.xin
-greenluan.com
-qingluan.xin
+greenluan.xin 
+greenluan.com 
+qingluan.xin 
 
 
 # 相关英文单词
 azure luan
-azure/blue-green, mythical bird, messenger bird
-A letter/message delivered by the Qingluan (a mythical azure bird/messenger bird).
-A Qingluan-borne letter/message. 
-A message delivered by a divine/mythical bird.
-A celestial bird's message/letter.
-A message on phoenix wings.
-A letter borne by a messenger of the gods. 
-Tidings from afar (borne on azure wings). 
-Long-awaited word/news. 
+azure/blue-green, mythical bird, messenger bird 
+A letter/message delivered by the Qingluan (a mythical azure bird/messenger bird). 
+A Qingluan-borne letter/message.  
+A message delivered by a divine/mythical bird. 
+A celestial bird's message/letter. 
+A message on phoenix wings. 
+A letter borne by a messenger of the gods.  
+Tidings from afar (borne on azure wings).  
+Long-awaited word/news.  
