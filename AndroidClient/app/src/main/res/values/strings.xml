@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">青鸾信GreenLuan</string>
+    <string name="app_name">青鸾信</string>
+    <string name="main_activity_title">青鸾信·GreenLuan</string>
+    <string name="accessibility_service_description">无障碍服务说明</string>
 </resources>
