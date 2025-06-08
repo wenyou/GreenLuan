@@ -6,23 +6,34 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AppOpsManager;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.media.projection.MediaProjectionManager;
+
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.google.gson.Gson;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import cn.stkit.greenluan.service.AppUsageTrackingService;
+import cn.stkit.greenluan.service.CommandProcessingService;
 import cn.stkit.greenluan.service.LocationTrackingService;
-import cn.stkit.greenluan.service.ScreenshotService;
+
 
 /**
  * App主界面Activity
@@ -32,13 +43,28 @@ import cn.stkit.greenluan.service.ScreenshotService;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "GreenLuanMainActivity";
-    private static final int REQUEST_CODE_LOCATION = 101;
+    //请求码相关
+    private static final int PERMISSION_REQUEST_CODE = 1001;//权限请求的自定义请求码（整数常量），用于标识不同的权限请求场景
+    //用于标识权限请求的类型
+    private static final int USAGE_STATS_PERMISSION_REQUEST_CODE = 1002;//使用情况统计权限（Usage Stats Permission） 的请求码
+    private static final int OVERLAY_PERMISSION_REQUEST_CODE = 1003;// 悬浮窗权限（SYSTEM_ALERT_WINDOW） 的自定义请求码
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1004;// 位置权限的自定义请求码
+    // 通知相关
+    private static final String NOTIFICATION_CHANNEL_ID = "greenluan_monitoring_channel";
+    private static final int NOTIFICATION_ID = 100;
+
+    // 存储偏好
+    private SharedPreferences sharedPreferences;
+    private Gson gson;
+
+    //old code
     private static final int REQUEST_CODE_USAGE_STATS = 102;
     private static final int REQUEST_CODE_OVERLAY = 103;
     private static final int REQUEST_CODE_SCREENSHOT = 104;
     private static final int REQUEST_CODE_BACKGROUND_LOCATION = 105;
 
     private TextView statusTextView;
+    //end old code
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,49 +74,135 @@ public class MainActivity extends AppCompatActivity {
         //设置MainActivity标题栏标题
         setTitle(R.string.main_activity_title);
 
-        statusTextView = findViewById(R.id.status_text);
-        Button checkPermissionsButton = findViewById(R.id.check_permissions_button);
+        // 保持屏幕常亮
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        checkPermissionsButton.setOnClickListener(v -> checkAndRequestPermissions());
+        // 初始化组件
+        initComponents();
 
-        // 启动服务
-        startServices();
+        // 初始化存储和工具
+        sharedPreferences = getSharedPreferences("greenluan_monitoring", MODE_PRIVATE);
+        gson = new Gson();
 
-        // 检查权限
+        // 创建通知渠道（Android 8.0+）
+        createNotificationChannel();
+        // 检查并请求权限
         checkAndRequestPermissions();
 
-        // 显示状态
-        updateStatus();
+        // 启动服务
+        startMonitoringServices();
+
+        // 隐藏主界面（仅用于初始设置）
+        finish();
+
+        //old code
+        //statusTextView = findViewById(R.id.status_text);
+        //Button checkPermissionsButton = findViewById(R.id.check_permissions_button);
+        //checkPermissionsButton.setOnClickListener(v -> checkAndRequestPermissions());
+        //启动服务
+        //startServices();
+        //end old code
+
+        // 显示状态  old code
+        //updateStatus();
     }
 
-    /**
-     * 启动服务
-     */
-    private void startServices() {
-        // 启动位置跟踪服务
-        Intent locationServiceIntent = new Intent(this, LocationTrackingService.class);
+    //初始化组件
+    private void initComponents() {
+        // 设置按钮点击事件（如果需要UI交互）
+        Button exitButton = findViewById(R.id.exit_button);
+        exitButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showRestrictedDialog();
+            }
+        });
+    }
+
+    //创建通知渠道（Android 8.0+）
+    private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(locationServiceIntent);
-        } else {
-            startService(locationServiceIntent);
+            NotificationChannel channel = new NotificationChannel(
+                    NOTIFICATION_CHANNEL_ID,
+                    "青鸾信学生监控服务",
+                    NotificationManager.IMPORTANCE_LOW
+            );
+            channel.setDescription("青鸾信监控学生手机使用情况和位置");
+
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            manager.createNotificationChannel(channel);
         }
     }
 
+    //检查并请求权限
     private void checkAndRequestPermissions() {
-        boolean allPermissionsGranted = true;
+        //所需权限列表
+        List<String> permissionsNeeded = new ArrayList<>();
+        //boolean allPermissionsGranted = true;//old code
 
         // 检查位置权限
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            permissionsNeeded.add(Manifest.permission.ACCESS_FINE_LOCATION);
 
-            ActivityCompat.requestPermissions(
+            //old code
+            /*ActivityCompat.requestPermissions(
                     this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    REQUEST_CODE_LOCATION
+                    LOCATION_PERMISSION_REQUEST_CODE
             );
             allPermissionsGranted = false;
+            */
+            //end old code
         }
 
+        // 检查系统警告窗口权限（用于覆盖UI） 检查悬浮窗权限
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + getPackageName()));
+            startActivityForResult(intent, OVERLAY_PERMISSION_REQUEST_CODE);
+
+            //showOverlayPermissionDialog();
+            //allPermissionsGranted = false;
+        }
+
+        // 检查应用使用情况权限 检查应用使用统计权限
+        if (!hasUsageStatsPermission()) {
+            Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
+            startActivityForResult(intent, USAGE_STATS_PERMISSION_REQUEST_CODE);
+            //showUsageStatsPermissionDialog();
+            //allPermissionsGranted = false;
+        }
+
+        // 检查存储权限（用于截图）
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            //Android 13（API 33）及以上
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+                permissionsNeeded.add(Manifest.permission.READ_MEDIA_IMAGES);
+            }
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.READ_MEDIA_VIDEO) != PackageManager.PERMISSION_GRANTED) {
+                permissionsNeeded.add(Manifest.permission.READ_MEDIA_VIDEO);
+            }
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                permissionsNeeded.add(Manifest.permission.READ_MEDIA_AUDIO);
+            }
+        } else {
+            //Android 12（API 31）及以下
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                permissionsNeeded.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+            }
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                permissionsNeeded.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            }
+        }
+
+        /*
+        //old code
         // 检查后台位置权限 (Android 10+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
                 ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
@@ -104,37 +216,36 @@ public class MainActivity extends AppCompatActivity {
             allPermissionsGranted = false;
         }
 
-        // 检查应用使用统计权限
-        if (!hasUsageStatsPermission()) {
-            showUsageStatsPermissionDialog();
-            allPermissionsGranted = false;
-        }
-
-        // 检查悬浮窗权限
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
-            showOverlayPermissionDialog();
-            allPermissionsGranted = false;
-        }
-
         // 检查无障碍服务权限
         if (!isAccessibilityServiceEnabled()) {
             showAccessibilityServiceDialog();
             allPermissionsGranted = false;
         }
-
         // 检查截图权限
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && !hasScreenshotPermission()) {
             showScreenshotPermissionDialog();
             allPermissionsGranted = false;
         }
 
-        if (allPermissionsGranted) {
-            Toast.makeText(this, "所有权限已授予", Toast.LENGTH_SHORT).show();
+        //end old
+        */
+
+        // 显示 请求权限 检查提示
+        if (!permissionsNeeded.isEmpty()) {
+            ActivityCompat.requestPermissions(this,
+                    permissionsNeeded.toArray(new String[0]),
+                    PERMISSION_REQUEST_CODE);
         }
 
-        updateStatus();
+        //updateStatus();
+
+        /* old code
+        if (allPermissionsGranted) {
+            Toast.makeText(this, "所有权限已授予", Toast.LENGTH_SHORT).show();
+        }*/
     }
 
+    //检查应用使用情况权限 检查应用使用统计权限
     private boolean hasUsageStatsPermission() {
         AppOpsManager appOps = (AppOpsManager) getSystemService(Context.APP_OPS_SERVICE);
         int mode = appOps.checkOpNoThrow(
@@ -142,9 +253,116 @@ public class MainActivity extends AppCompatActivity {
                 android.os.Process.myUid(),
                 getPackageName()
         );
-
         return mode == AppOpsManager.MODE_ALLOWED;
     }
+
+    //根据请求获取权限结果
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            boolean allGranted = true;
+            for (int result : grantResults) {
+                if (result != PackageManager.PERMISSION_GRANTED) {
+                    allGranted = false;
+                    break;
+                }
+            }
+
+            if (!allGranted) {
+                showRestrictedDialog();
+            }
+        }
+    }
+
+    //在“活动结果”中
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == USAGE_STATS_PERMISSION_REQUEST_CODE) {
+            if (!hasUsageStatsPermission()) {
+                showRestrictedDialog();
+            }
+        } else if (requestCode == OVERLAY_PERMISSION_REQUEST_CODE) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+                showRestrictedDialog();
+            }
+        }
+    }
+
+    /**
+     * 启动监控服务
+     */
+    private void startMonitoringServices() {
+        // 启动位置服务
+        Intent locationIntent = new Intent(this, LocationTrackingService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(locationIntent);
+        } else {
+            startService(locationIntent);
+        }
+
+        // 启动应用使用监控服务
+        Intent appUsageIntent = new Intent(this, AppUsageTrackingService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(appUsageIntent);
+        } else {
+            startService(appUsageIntent);
+        }
+
+        // 启动命令接收服务
+        Intent commandIntent = new Intent(this, CommandProcessingService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(commandIntent);
+        } else {
+            startService(commandIntent);
+        }
+    }
+
+    //显示受限制提示框
+    private void showRestrictedDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("功能限制")
+                .setMessage("为了保证青鸾信学生监控功能正常运行，需要授予所有请求的权限。应用无法退出。")
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        checkAndRequestPermissions();
+                    }
+                })
+                .setCancelable(false)
+                .show();
+    }
+
+    //返回键按下事件
+    @Override
+    public void onBackPressed() {
+        // 禁用返回键
+        showRestrictedDialog();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // 确保应用不被轻易终止
+        if (!isChangingConfigurations()) {
+            startMonitoringServices();
+        }
+    }
+
+    /**
+     * 启动服务
+     * old code
+    private void startServices() {
+        // 启动位置跟踪服务
+        Intent locationServiceIntent = new Intent(this, LocationTrackingService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(locationServiceIntent);
+        } else {
+            startService(locationServiceIntent);
+        }
+    }*/
 
     /*
     private boolean isAccessibilityServiceEnabled() {
@@ -158,6 +376,7 @@ public class MainActivity extends AppCompatActivity {
         return mode == AppOpsManager.MODE_ALLOWED;
     }*/
 
+    //old code
     private boolean isAccessibilityServiceEnabled() {
         String enabledServices = Settings.Secure.getString(
                 getContentResolver(),
@@ -170,11 +389,13 @@ public class MainActivity extends AppCompatActivity {
         return enabledServices.contains(expectedComponentName);
     }
 
+    //old code
     private boolean hasScreenshotPermission() {
         // 截图权限需要通过MediaProjection API获取
         return false;
     }
 
+    //old code
     private void showUsageStatsPermissionDialog() {
         new AlertDialog.Builder(this)
                 .setTitle("应用使用统计权限")
@@ -187,6 +408,7 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
+    //old code
     private void showOverlayPermissionDialog() {
         new AlertDialog.Builder(this)
                 .setTitle("悬浮窗权限")
@@ -202,6 +424,7 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
+    //old code
     private void showAccessibilityServiceDialog() {
         new AlertDialog.Builder(this)
                 .setTitle("无障碍服务")
@@ -214,6 +437,7 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
+    /* old code
     private void showScreenshotPermissionDialog() {
         new AlertDialog.Builder(this)
                 .setTitle("截图权限")
@@ -228,8 +452,10 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .setNegativeButton("取消", null)
                 .show();
-    }
+    }*/
 
+    /*
+    //old code
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -264,8 +490,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         updateStatus();
-    }
+    }*/
 
+    /*
+    //old code
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -306,8 +534,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         updateStatus();
-    }
+    }*/
 
+    //old code
+    //更新显示状态
     private void updateStatus() {
         StringBuilder status = new StringBuilder();
 

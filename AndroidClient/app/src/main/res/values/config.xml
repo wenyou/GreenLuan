@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--用于存放可动态修改的字符串配置-->
+
+    <!-- 服务器地址（可通过渠道打包工具动态替换） -->
+    <string name="server_base_url">https://api.greenluan.com/student-monitor</string>
+
+    <!-- 应用名称 -->
+    <string name="app_name">青鸾信学生监控助手</string>
+
+    <!-- 权限请求说明文案 -->
+    <string name="permission_location_desc">需要位置权限以监控学生位置</string>
+</resources>

@@ -1,5 +1,18 @@
 <resources>
     <string name="app_name">青鸾信</string>
     <string name="main_activity_title">青鸾信·GreenLuan</string>
+    <string name="greenluanapp_other_name_student_monitoring_application">学生监控应用</string>
+    <string name="app_slogan_title">青鸟殷勤为探看</string>
+    <string name="greeluanapp_description">此应用正在后台运行，监控您的位置和应用使用情况。</string>
+    <string name="exit_button_text">退出应用</string>
+    <string name="checking_permission_status">权限状态检查中...</string>
+    <string name="check_permissions_button_text">检查并申请权限</string>
+    <string name="message_text">消息内容</string>
     <string name="accessibility_service_description">无障碍服务说明</string>
+    <string name="location_service_title">位置监控服务</string>
+    <string name="location_service_description">正在监控您的位置</string>
+    <string name="app_usage_service_title">应用使用监控服务</string>
+    <string name="app_usage_service_description">正在监控应用使用情况</string>
+    <string name="command_service_title">命令接收服务</string>
+    <string name="command_service_description">正在等待服务器指令</string>
 </resources>

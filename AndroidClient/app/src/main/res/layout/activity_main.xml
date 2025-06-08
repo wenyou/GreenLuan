@@ -9,32 +9,61 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="青鸟殷勤为探看"
+        android:text="@string/app_slogan_title"
         android:textColor="@color/purple_200"
+        android:textStyle="bold"
+        android:gravity="center_horizontal"
+        android:layout_gravity="center_horizontal"
         android:textSize="28sp" />
 
-    <!-- 状态显示区域 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/greenluanapp_other_name_student_monitoring_application"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="20dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/greeluanapp_description"
+        android:textSize="16sp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="20dp"/>
+
+    <Button
+        android:id="@+id/exit_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/exit_button_text"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="40dp"
+        android:visibility="gone"/> <!-- 隐藏退出按钮 -->
+
+    <!-- 状态显示区域
     <TextView
         android:id="@+id/status_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="权限状态检查中..."
+        android:text="@string/checking_permission_status"
         android:textSize="14sp"
         android:textColor="#333333"
         android:lineSpacingExtra="4dp"
-        android:layout_marginBottom="24dp"/>
+        android:layout_marginBottom="24dp"/> -->
 
-    <!-- 权限检查按钮 -->
+    <!-- 权限检查按钮
     <Button
         android:id="@+id/check_permissions_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="检查并申请权限"
+        android:text="@string/check_permissions_button_text"
         android:textSize="16sp"
         android:background="@drawable/selector_button_background"
         android:textColor="@android:color/white"
         android:paddingVertical="12dp"
         android:paddingHorizontal="24dp"
-        android:layout_marginTop="16dp"/>
+        android:layout_marginTop="16dp"/> -->
 
 </LinearLayout>

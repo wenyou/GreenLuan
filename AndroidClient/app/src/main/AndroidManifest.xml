@@ -6,15 +6,20 @@
     <!-- 权限声明 -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
     <uses-permission
         android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" /> <!-- 允许 Android 应用程序在前台运行服务 -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!-- 允许应用程序向外部存储（如 SD 卡或设备的公共存储空间）写入文件 -->
-    <uses-permission
-        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!--Android 12（API 31）及以下 允许应用程序向外部存储（如 SD 卡或设备的公共存储空间）写入文件 -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> <!--Android 12（API 31）及以下-->
+
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" /> <!--Android 13（API 33）及以上-->
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" /> <!--Android 13（API 33）及以上-->
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" /> <!--Android 13（API 33）及以上-->
+
     <uses-permission
         android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" /> <!-- 允许应用在设备启动完成后接收系统广播的权限 -->
@@ -25,9 +30,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+
     <!-- 允许捕获屏幕截图的权限 -->
     <uses-permission android:name="android.permission.CAPTURE_VIDEO_OUTPUT" tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.CAPTURE_SECURE_VIDEO_OUTPUT" tools:ignore="ProtectedPermissions" />
@@ -46,25 +49,26 @@
         <!-- 主活动 -->
         <activity
             android:name=".MainActivity"
-            android:exported="true"
-            android:label="@string/main_activity_title">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!--
         <activity
             android:name=".activity.OverlayMessageActivity"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
             android:excludeFromRecents="true"
             android:taskAffinity=""
-            android:launchMode="singleTop"/>
+            android:launchMode="singleTop"/>-->
         <!-- 服务 -->
         <service
             android:name=".service.LocationTrackingService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="location"/>
+
         <service
             android:name=".service.AppUsageTrackingService"
             android:enabled="true"
@@ -77,6 +81,7 @@
             android:exported="false"
             android:foregroundServiceType="connectedDevice"/>
 
+        <!--
         <service
             android:name=".accessibility.OverlayAccessibilityService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
@@ -87,7 +92,7 @@
             <meta-data
                 android:name="android.accessibilityservice"
                 android:resource="@xml/accessibility_service_config" />
-        </service>
+        </service>-->
 
         <!-- 广播接收器 -->
         <receiver
@@ -100,6 +105,7 @@
                 <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
             </intent-filter>
         </receiver>
+
     </application>
 
 </manifest>

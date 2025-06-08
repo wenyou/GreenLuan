@@ -31,7 +31,7 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
         //创建通知渠道
-        createNotificationChannels();
+        //createNotificationChannels();
         //开始监控服务
         //startMonitoringServices();
     }
@@ -90,6 +90,7 @@ public class App extends Application {
         }
     }
 
+    //开始监控服务
     private void startMonitoringServices() {
         // 启动位置跟踪服务
         Intent locationServiceIntent = new Intent(this, LocationTrackingService.class);
