@@ -22,8 +22,8 @@
 
     <uses-permission
         android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
-        tools:ignore="ScopedStorage" /> <!-- 允许应用在设备启动完成后接收系统广播的权限 -->
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+        tools:ignore="ScopedStorage" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" /><!-- 允许应用在设备启动完成后接收系统广播的权限 -->
     <uses-permission android:name="android.permission.TAKE_SCREENSHOT" />
     <uses-permission android:name="android.permission.INTERNET" /> <!-- 网络访问权限 -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /><!-- 局域网访问权限 -->
@@ -100,8 +100,11 @@
             android:enabled="true"
             android:exported="true">
             <intent-filter>
+                <!-- 标准启动完成广播 -->
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <!-- 快速启动完成广播（部分厂商支持）,用于监听设备快速启动（Quick Boot）完成后的事件,部分 Android 设备支持 “快速启动” 模式（类似休眠），在关机时保存系统状态，下次启动时恢复，速度比完全重启快。 -->
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <!-- 某些厂商可能使用不同的 Action 名称 -->
                 <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
             </intent-filter>
         </receiver>

@@ -21,10 +21,15 @@ public class BootReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
-            Log.d(TAG, "GreenLuan Boot completed, starting services...");
+        String action = intent.getAction();
+        if (action != null && (action.equals(Intent.ACTION_BOOT_COMPLETED) ||
+                action.equals("android.intent.action.QUICKBOOT_POWERON") ||
+                action.equals("com.htc.intent.action.QUICKBOOT_POWERON"))) {
+        //if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) { // 使用上面条件判断代替此行 2025-6-9
 
-            // 启动位置服务
+            Log.d(TAG, "Device booted, GreenLuan starting monitoring services...");
+
+            // 启动位置服务(启动位置跟踪服务)
             Intent locationIntent = new Intent(context, LocationTrackingService.class);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(locationIntent);
@@ -32,7 +37,7 @@ public class BootReceiver extends BroadcastReceiver {
                 context.startService(locationIntent);
             }
 
-            // 启动应用使用监控服务
+            // 启动应用使用监控服务(启动应用使用跟踪服务)
             Intent appUsageIntent = new Intent(context, AppUsageTrackingService.class);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(appUsageIntent);
@@ -40,7 +45,7 @@ public class BootReceiver extends BroadcastReceiver {
                 context.startService(appUsageIntent);
             }
 
-            // 启动命令服务
+            // 启动命令服务（启动命令处理服务）
             Intent commandIntent = new Intent(context, CommandProcessingService.class);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(commandIntent);
