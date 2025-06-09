@@ -30,6 +30,7 @@ import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.List;
 
+import cn.stkit.greenluan.config.ConfigConstants;
 import cn.stkit.greenluan.service.AppUsageTrackingService;
 import cn.stkit.greenluan.service.CommandProcessingService;
 import cn.stkit.greenluan.service.LocationTrackingService;
@@ -44,25 +45,21 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "GreenLuanMainActivity";
     //请求码相关
-    private static final int PERMISSION_REQUEST_CODE = 1001;//权限请求的自定义请求码（整数常量），用于标识不同的权限请求场景
+    private static final int PERMISSION_REQUEST_CODE = ConfigConstants.PERMISSION_REQUEST_CODE;//权限请求的自定义请求码（整数常量），用于标识不同的权限请求场景
     //用于标识权限请求的类型
-    private static final int USAGE_STATS_PERMISSION_REQUEST_CODE = 1002;//使用情况统计权限（Usage Stats Permission） 的请求码
-    private static final int OVERLAY_PERMISSION_REQUEST_CODE = 1003;// 悬浮窗权限（SYSTEM_ALERT_WINDOW） 的自定义请求码
-    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1004;// 位置权限的自定义请求码
+    private static final int USAGE_STATS_PERMISSION_REQUEST_CODE = ConfigConstants.USAGE_STATS_PERMISSION_REQUEST_CODE;//使用情况统计权限（Usage Stats Permission） 的请求码
+    private static final int OVERLAY_PERMISSION_REQUEST_CODE = ConfigConstants.OVERLAY_PERMISSION_REQUEST_CODE;// 悬浮窗权限（SYSTEM_ALERT_WINDOW） 的自定义请求码
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = ConfigConstants.LOCATION_PERMISSION_REQUEST_CODE;// 位置权限的自定义请求码
     // 通知相关
-    private static final String NOTIFICATION_CHANNEL_ID = "greenluan_monitoring_channel";
-    private static final int NOTIFICATION_ID = 100;
+    private static final String NOTIFICATION_CHANNEL_ID = ConfigConstants.NOTIFICATION_CHANNEL_ID;//主服务通知通道，greenluan_monitoring_channel
+    private static final int NOTIFICATION_ID = ConfigConstants.NOTIFICATION_ID;//100
 
     // 存储偏好
     private SharedPreferences sharedPreferences;
     private Gson gson;
 
-    //old code
-    private static final int REQUEST_CODE_USAGE_STATS = 102;
-    private static final int REQUEST_CODE_OVERLAY = 103;
-    private static final int REQUEST_CODE_SCREENSHOT = 104;
-    private static final int REQUEST_CODE_BACKGROUND_LOCATION = 105;
 
+    //old code
     private TextView statusTextView;
     //end old code
 
@@ -122,12 +119,13 @@ public class MainActivity extends AppCompatActivity {
     //创建通知渠道（Android 8.0+）
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // 主服务通知通道
             NotificationChannel channel = new NotificationChannel(
                     NOTIFICATION_CHANNEL_ID,
-                    "青鸾信学生监控服务",
-                    NotificationManager.IMPORTANCE_LOW
+                    "青鸾信学生监控服务",//GreenLuan's Student Monitoring Service
+                    NotificationManager.IMPORTANCE_LOW //NotificationManager.IMPORTANCE_DEFAULT
             );
-            channel.setDescription("青鸾信监控学生手机使用情况和位置");
+            channel.setDescription("青鸾信监控学生手机位置和使用情况");//Background service for GreenLuan's student monitoring
 
             NotificationManager manager = getSystemService(NotificationManager.class);
             manager.createNotificationChannel(channel);
@@ -140,7 +138,9 @@ public class MainActivity extends AppCompatActivity {
         List<String> permissionsNeeded = new ArrayList<>();
         //boolean allPermissionsGranted = true;//old code
 
-        // 检查位置权限
+        // 检查精确位置权限
+        // 精确位置权限，允许应用使用 GPS、Wi-Fi、蓝牙和移动网络等精确位置源获取设备的精确位置（经纬度）。
+        //应用：地图导航、共享单车等需要精确定位的应用；实时位置跟踪服务。
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             permissionsNeeded.add(Manifest.permission.ACCESS_FINE_LOCATION);
@@ -154,6 +154,15 @@ public class MainActivity extends AppCompatActivity {
             allPermissionsGranted = false;
             */
             //end old code
+        }
+
+        // 检查后台位置权限 (Android 10+ 需要单独声明)
+        // 后台位置权限，允许应用在后台持续获取位置信息（即使应用未在前台运行）。
+        // 应用：运动记录应用（如跑步、骑行时记录轨迹）；基于位置的提醒服务（如到达特定区域时推送通知）。
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
+            permissionsNeeded.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION);
         }
 
         // 检查系统警告窗口权限（用于覆盖UI） 检查悬浮窗权限
@@ -295,7 +304,7 @@ public class MainActivity extends AppCompatActivity {
      * 启动监控服务
      */
     private void startMonitoringServices() {
-        // 启动位置服务
+        // 启动位置服务，启动位置跟踪服务
         Intent locationIntent = new Intent(this, LocationTrackingService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(locationIntent);
@@ -303,7 +312,7 @@ public class MainActivity extends AppCompatActivity {
             startService(locationIntent);
         }
 
-        // 启动应用使用监控服务
+        // 启动应用使用监控服务，启动应用使用跟踪服务
         Intent appUsageIntent = new Intent(this, AppUsageTrackingService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(appUsageIntent);
@@ -311,7 +320,7 @@ public class MainActivity extends AppCompatActivity {
             startService(appUsageIntent);
         }
 
-        // 启动命令接收服务
+        // 启动命令接收服务，启动命令处理服务
         Intent commandIntent = new Intent(this, CommandProcessingService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(commandIntent);
@@ -402,7 +411,7 @@ public class MainActivity extends AppCompatActivity {
                 .setMessage("为了监控应用使用情况，需要授予应用使用统计权限")
                 .setPositiveButton("去设置", (dialog, which) -> {
                     Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
-                    startActivityForResult(intent, REQUEST_CODE_USAGE_STATS);
+                    startActivityForResult(intent, USAGE_STATS_PERMISSION_REQUEST_CODE);
                 })
                 .setNegativeButton("取消", null)
                 .show();
@@ -418,7 +427,7 @@ public class MainActivity extends AppCompatActivity {
                             Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                             Uri.parse("package:" + getPackageName())
                     );
-                    startActivityForResult(intent, REQUEST_CODE_OVERLAY);
+                    startActivityForResult(intent, OVERLAY_PERMISSION_REQUEST_CODE);
                 })
                 .setNegativeButton("取消", null)
                 .show();
@@ -447,7 +456,7 @@ public class MainActivity extends AppCompatActivity {
                         MediaProjectionManager mediaProjectionManager =
                                 (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
                         Intent intent = mediaProjectionManager.createScreenCaptureIntent();
-                        startActivityForResult(intent, REQUEST_CODE_SCREENSHOT);
+                        startActivityForResult(intent, ConfigConstants.SCREENSHOT_PERMISSION_REQUEST_CODE);
                     }
                 })
                 .setNegativeButton("取消", null)
@@ -499,7 +508,7 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         switch (requestCode) {
-            case REQUEST_CODE_USAGE_STATS:
+            case USAGE_STATS_PERMISSION_REQUEST_CODE:
                 if (hasUsageStatsPermission()) {
                     Toast.makeText(this, "应用使用统计权限已授予", Toast.LENGTH_SHORT).show();
                 } else {
@@ -507,7 +516,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
 
-            case REQUEST_CODE_OVERLAY:
+            case OVERLAY_PERMISSION_REQUEST_CODE:
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Settings.canDrawOverlays(this)) {
                     Toast.makeText(this, "悬浮窗权限已授予", Toast.LENGTH_SHORT).show();
                 } else {
@@ -515,7 +524,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
 
-            case REQUEST_CODE_SCREENSHOT:
+            case ConfigConstants.SCREENSHOT_PERMISSION_REQUEST_CODE:
                 if (resultCode == Activity.RESULT_OK && data != null) {
                     // 保存截图权限结果
                     Intent screenshotServiceIntent = new Intent(this, ScreenshotService.class);

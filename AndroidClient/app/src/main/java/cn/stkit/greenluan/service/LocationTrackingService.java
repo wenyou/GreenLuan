@@ -36,9 +36,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import cn.stkit.greenluan.App;
 import cn.stkit.greenluan.MainActivity;
 import cn.stkit.greenluan.R;
+import cn.stkit.greenluan.config.ConfigConstants;
 import cn.stkit.greenluan.data.LocationData;
 import cn.stkit.greenluan.network.ApiClient;
 import cn.stkit.greenluan.util.HttpUtils;
@@ -49,12 +49,14 @@ import cn.stkit.greenluan.util.HttpUtils;
  * @date 2025-6-4
  */
 public class LocationTrackingService extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+
     private static final String TAG = "GreenLuanLocationService";
-    private static final int NOTIFICATION_ID = 101;
-    private static final String NOTIFICATION_CHANNEL_ID = "greenLuan's_location_service_channel";
+    //通知相关
+    private static final int NOTIFICATION_ID = ConfigConstants.LOCATION_NOTIFICATION_ID;//101， 位置通知ID
+    private static final String NOTIFICATION_CHANNEL_ID = ConfigConstants.LOCATION_NOTIFICATION_CHANNEL_ID;//位置通知渠道ID,greenLuan's_location_service_channel
     // 位置更新参数
-    private static final int UPDATE_INTERVAL = 1 * 60 * 1000; // 1分钟
-    private static final int FASTEST_INTERVAL = 30 * 1000; // 30秒
+    private static final int UPDATE_INTERVAL = ConfigConstants.LOCATION_UPDATE_INTERVAL; // 1分钟
+    private static final int FASTEST_INTERVAL = ConfigConstants.LOCATION_FASTEST_INTERVAL; // 30秒
 
     private FusedLocationProviderClient fusedLocationClient;
     private LocationRequest locationRequest;
@@ -75,11 +77,10 @@ public class LocationTrackingService extends Service implements GoogleApiClient.
         gson = new Gson();
         // 初始化Google API客户端
         buildGoogleApiClient();
-        // 初始化位置请求
+        // 初始化位置请求，更新位置
         createLocationRequest();
         // 初始化位置回调
         createLocationCallback();
-
         // 初始化位置客户端
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
@@ -158,7 +159,7 @@ public class LocationTrackingService extends Service implements GoogleApiClient.
     //初始化位置请求
     private void createLocationRequest() {
         locationRequest = LocationRequest.create();
-        locationRequest.setInterval(UPDATE_INTERVAL);
+        locationRequest.setInterval(UPDATE_INTERVAL);//n秒更新一次
         locationRequest.setFastestInterval(FASTEST_INTERVAL);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
@@ -268,7 +269,7 @@ public class LocationTrackingService extends Service implements GoogleApiClient.
         );
 
         // 上传到服务器
-        ApiClient.getInstance(this).uploadLocation(locationData, new ApiClient.Callback() {
+        ApiClient.getInstance(this).uploadLocation(locationData, new ApiClient.ApiCallback() {
             @Override
             public void onSuccess(String response) {
                 Log.d(TAG, "Location uploaded successfully");
@@ -294,7 +295,7 @@ public class LocationTrackingService extends Service implements GoogleApiClient.
     }
 
     /**
-     * 创建通知
+     * 创建位置服务通知通道
      * @return
      */
     private Notification createNotification() {
@@ -319,11 +320,14 @@ public class LocationTrackingService extends Service implements GoogleApiClient.
                 .build();*/
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // 位置服务通知通道
             NotificationChannel channel = new NotificationChannel(
                     NOTIFICATION_CHANNEL_ID,
                     "GreenLuan's Location Tracking Service",//位置监控服务
-                    NotificationManager.IMPORTANCE_LOW
+                    NotificationManager.IMPORTANCE_LOW //NotificationManager.IMPORTANCE_HIGH
             );
+            channel.setDescription("GreenLuan's Service for tracking device location");
+
             NotificationManager manager = getSystemService(NotificationManager.class);
             manager.createNotificationChannel(channel);
         }

@@ -11,7 +11,7 @@ import cn.stkit.greenluan.service.CommandProcessingService;
 import cn.stkit.greenluan.service.LocationTrackingService;
 
 /**
- * 启动接收器 (开机启动)
+ * 启动接收器 (开机启动接收器)
  * @author Zeeny  zhwenyou@gmail.com
  * @date 2025-6-8
  */
@@ -19,6 +19,7 @@ public class BootReceiver extends BroadcastReceiver {
 
     private static final String TAG = "GreenLuanBootReceiver";
 
+    // 启动服务
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();

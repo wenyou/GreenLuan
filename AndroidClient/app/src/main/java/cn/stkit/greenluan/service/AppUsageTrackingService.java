@@ -24,6 +24,7 @@ import com.google.gson.Gson;
 import cn.stkit.greenluan.App;
 import cn.stkit.greenluan.MainActivity;
 import cn.stkit.greenluan.R;
+import cn.stkit.greenluan.config.ConfigConstants;
 import cn.stkit.greenluan.data.AppUsageData;
 import cn.stkit.greenluan.network.ApiClient;
 import cn.stkit.greenluan.util.HttpUtils;
@@ -51,10 +52,11 @@ import java.util.concurrent.TimeUnit;
 public class AppUsageTrackingService extends Service {
 
     private static final String TAG = "GreenLuanAppUsageService";
-    private static final int NOTIFICATION_ID = 102;
-    private static final String NOTIFICATION_CHANNEL_ID = "greenLuan's_app_usage_channel";
-    // 统计间隔（分钟）
-    private static final long STATISTICS_INTERVAL = 15;
+    //通知相关
+    private static final int NOTIFICATION_ID = ConfigConstants.APP_USAGE_NOTIFICATION_ID;//102, 通知ID
+    private static final String NOTIFICATION_CHANNEL_ID = ConfigConstants.APP_USAGE_NOTIFICATION_CHANNEL_ID;//应用使用统计通知通道，渠道ID，"greenLuan's_app_usage_channel";
+    // 应用使用统计间隔（分钟）
+    private static final long STATISTICS_INTERVAL = ConfigConstants.APP_USAGE_STATISTICS_INTERVAL;
 
     private UsageStatsManager usageStatsManager;
     private SharedPreferences sharedPreferences;
@@ -198,7 +200,7 @@ public class AppUsageTrackingService extends Service {
         }
 
         // 上传到服务器
-        ApiClient.getInstance(this).uploadAppUsage(usageDataList, new ApiClient.Callback() {
+        ApiClient.getInstance(this).uploadAppUsage(usageDataList, new ApiClient.ApiCallback() {
             @Override
             public void onSuccess(String response) {
                 Log.d(TAG, "App usage data uploaded successfully");
@@ -218,7 +220,11 @@ public class AppUsageTrackingService extends Service {
         // 实现本地存储待上传的应用使用数据
     }
 
-    //创建通知
+    /**
+     * 创建通知
+     * 应用使用统计通知通道
+     * @return
+     */
     private Notification createNotification() {
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
@@ -232,11 +238,14 @@ public class AppUsageTrackingService extends Service {
                 .setPriority(NotificationCompat.PRIORITY_LOW);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // 应用使用统计通知通道
             NotificationChannel channel = new NotificationChannel(
                     NOTIFICATION_CHANNEL_ID,
                     "GreenLuan's Application usage monitoring service",//应用使用监控服务
-                    NotificationManager.IMPORTANCE_LOW
+                    NotificationManager.IMPORTANCE_LOW //NotificationManager.IMPORTANCE_DEFAULT
             );
+            channel.setDescription("GreenLuan's Service for tracking app usage"); //Service for GreenLuan's tracking app usage
+
             NotificationManager manager = getSystemService(NotificationManager.class);
             manager.createNotificationChannel(channel);
         }

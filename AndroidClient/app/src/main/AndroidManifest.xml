@@ -2,15 +2,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="cn.stkit.greenluan">
+    <!--应用清单-->
 
     <!-- 权限声明 -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" /> <!-- 精确位置权限，允许应用使用 GPS、Wi-Fi、蓝牙和移动网络等精确位置源获取设备的精确位置（经纬度）。应用：地图导航、共享单车等需要精确定位的应用；实时位置跟踪服务。-->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" /><!--允许应用获取大致位置信息，用于获取设备大致位置的权限。与精确位置权限（ACCESS_FINE_LOCATION）相比，它提供的位置信息精度较低，但更注重用户隐私保护。-->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" /> <!--后台位置权限（Android 10+ 需要单独声明），允许应用在后台持续获取位置信息（即使应用未在前台运行）。应用：运动记录应用（如跑步、骑行时记录轨迹）；基于位置的提醒服务（如到达特定区域时推送通知）。-->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" /> <!--允许应用查询设备上的所有安装包，Android 11（API 30）+,通过 PackageManager 获取其他应用的信息（如包名、版本号、签名等）-->
     <uses-permission
         android:name="android.permission.PACKAGE_USAGE_STATS"
-        tools:ignore="ProtectedPermissions" /> <!-- 允许 Android 应用程序在前台运行服务 -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+        tools:ignore="ProtectedPermissions" /> <!--允许应用查询其他应用的使用统计数据，允许应用访问设备上其他应用的使用情况统计信息（如应用启动时间、使用时长等）。-->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" /> <!-- 允许 Android 应用程序在前台运行服务 -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!--Android 12（API 31）及以下 允许应用程序向外部存储（如 SD 卡或设备的公共存储空间）写入文件 -->
@@ -29,7 +32,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /><!-- 局域网访问权限 -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
 
     <!-- 允许捕获屏幕截图的权限 -->
     <uses-permission android:name="android.permission.CAPTURE_VIDEO_OUTPUT" tools:ignore="ProtectedPermissions" />

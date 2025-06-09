@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.content.Intent;
 import android.os.Build;
 
+import cn.stkit.greenluan.config.ConfigConstants;
 import cn.stkit.greenluan.service.AppUsageTrackingService;
 import cn.stkit.greenluan.service.CommandProcessingService;
 import cn.stkit.greenluan.service.LocationTrackingService;
@@ -17,15 +18,15 @@ import cn.stkit.greenluan.service.LocationTrackingService;
  */
 public class App extends Application {
     //主服务通知通道
-    public static final String CHANNEL_ID = "GreenLuanStudentMonitoringServiceChannel";
+    public static final String CHANNEL_ID = ConfigConstants.NOTIFICATION_CHANNEL_ID;
     //位置服务通知通道
-    public static final String LOCATION_CHANNEL_ID = "GreenLuanLocationServiceChannel";
+    public static final String LOCATION_CHANNEL_ID = ConfigConstants.LOCATION_NOTIFICATION_CHANNEL_ID;
     //应用使用统计通知通道
-    public static final String APP_USAGE_CHANNEL_ID = "GreenLuanAppUsageServiceChannel";
+    public static final String APP_USAGE_CHANNEL_ID = ConfigConstants.APP_USAGE_NOTIFICATION_CHANNEL_ID;
     //命令处理通知通道
-    public static final String COMMAND_CHANNEL_ID = "GreenLuanCommandServiceChannel";
+    public static final String COMMAND_CHANNEL_ID = ConfigConstants.COMMAND_NOTIFICATION_CHANNEL_ID;
     //截图服务通知通道
-    public static final String SCREENSHOT_CHANNEL_ID = "GreenLuanScreenshotServiceChannel";
+    public static final String SCREENSHOT_CHANNEL_ID = ConfigConstants.SCREENSHOT_NOTIFICATION_CHANNEL_ID;
 
     @Override
     public void onCreate() {
@@ -47,7 +48,7 @@ public class App extends Application {
                     "GreenLuan's Student Monitoring Service",
                     NotificationManager.IMPORTANCE_DEFAULT
             );
-            serviceChannel.setDescription("Background service for GreenLuan's student monitoring");
+            serviceChannel.setDescription("GreenLuan's Background service for student monitoring");
 
             // 位置服务通知通道
             NotificationChannel locationChannel = new NotificationChannel(
@@ -55,7 +56,7 @@ public class App extends Application {
                     "GreenLuan's Location Tracking Service",
                     NotificationManager.IMPORTANCE_HIGH
             );
-            locationChannel.setDescription("Service for GreenLuan's tracking device location");
+            locationChannel.setDescription("GreenLuan's Service for tracking device location");
 
             // 应用使用统计通知通道
             NotificationChannel appUsageChannel = new NotificationChannel(
@@ -63,7 +64,7 @@ public class App extends Application {
                     "GreenLuan's App Usage Tracking Service",
                     NotificationManager.IMPORTANCE_DEFAULT
             );
-            appUsageChannel.setDescription("Service for GreenLuan's tracking app usage");
+            appUsageChannel.setDescription("GreenLuan's Service for tracking app usage");
 
             // 命令处理通知通道
             NotificationChannel commandChannel = new NotificationChannel(
@@ -71,7 +72,7 @@ public class App extends Application {
                     "GreenLuan's Command Processing Service",
                     NotificationManager.IMPORTANCE_DEFAULT
             );
-            commandChannel.setDescription("Service for GreenLuan's processing server commands");
+            commandChannel.setDescription("GreenLuan's Service for processing server commands");
 
             // 截图服务通知通道
             NotificationChannel screenshotChannel = new NotificationChannel(
@@ -79,7 +80,7 @@ public class App extends Application {
                     "GreenLuan's Screenshot Service",
                     NotificationManager.IMPORTANCE_DEFAULT
             );
-            screenshotChannel.setDescription("Service for GreenLuan's taking screenshots");
+            screenshotChannel.setDescription("GreenLuan's Service for taking screenshots");
 
             NotificationManager manager = getSystemService(NotificationManager.class);
             manager.createNotificationChannel(serviceChannel);

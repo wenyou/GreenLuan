@@ -28,6 +28,7 @@ import androidx.core.app.NotificationCompat;
 import cn.stkit.greenluan.App;
 import cn.stkit.greenluan.MainActivity;
 import cn.stkit.greenluan.R;
+import cn.stkit.greenluan.config.ConfigConstants;
 import cn.stkit.greenluan.util.HttpUtils;
 
 import org.json.JSONException;
@@ -49,7 +50,8 @@ import java.util.Locale;
  */
 public class ScreenshotService extends Service {
     private static final String TAG = "GreenLuanScreenshotService";
-    private static final int NOTIFICATION_ID = 4;
+    //通知相关
+    private static final int NOTIFICATION_ID = ConfigConstants.SCREENSHOT_NOTIFICATION_ID;
 
     private MediaProjectionManager mediaProjectionManager;
     private MediaProjection mediaProjection;

